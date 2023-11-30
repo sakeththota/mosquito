@@ -11,19 +11,14 @@ pub enum Token {
     CONTINUE,
     RETURN,
     NEW,
-
-
     // Identifiers
     Ident(Vec<char>),
-
     // Literal
     Int(Vec<char>),
     Float(Vec<char>),
     String(Vec<char>),
     Boolean(Vec<char>),
     Null(Vec<char>),
-
-
     // Operators
     Plus(char),
     Minus(char),
@@ -45,7 +40,6 @@ pub enum Token {
     Hash(char),
     LeftShift,
     RightShift,
-
     // Delimeter
     LParen(char),
     RParen(char),
@@ -56,7 +50,6 @@ pub enum Token {
     Comma(char),
     Dot(char),
     Semicolon(char),
-
     // Special Tokens
     Illegal,
     Eof,

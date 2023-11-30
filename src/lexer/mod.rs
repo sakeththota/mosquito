@@ -32,8 +32,64 @@ impl Lexer {
         let tok: token::Token;
         // skip whitespace
         match self.ch {
+            // operators
             '+' => {
                 tok = token::Token::Plus(self.ch);
+            },
+            '-' => {
+                tok = token::Token::Minus(self.ch);
+            },
+            '*' => {
+                tok = token::Token::Multiply(self.ch);
+            },
+            '/' => {
+                tok = token::Token::Divide(self.ch);
+            },
+            '%' => {
+                tok = token::Token::Modulo(self.ch);
+            },
+            '!' => {
+                tok = token::Token::Not(self.ch);
+            },
+            '<' => {
+                tok = token::Token::LessThan(self.ch);
+            },
+            '>' => {
+                tok = token::Token::GreaterThan(self.ch);
+            },
+            '=' => {
+                tok = token::Token::Assignment(self.ch);
+            },
+            '#' => {
+                tok = token::Token::Hash(self.ch);
+            },
+            // delimeters
+            '(' => {)
+                tok = token::Token::LParen(self.ch);
+            },
+            ')' => {
+                tok = token::Token::RParen(self.ch);
+            },
+            '[' => {
+                tok = token::Token::LBracket(self.ch);
+            },
+            ']' => {
+                tok = token::Token::RBracket(self.ch);
+            },
+            '{' => {}
+                tok = token::Token::LBrace(self.ch);
+            },
+            '}' => {
+                tok = token::Token::RBrace(self.ch);
+            },
+            ',' => {
+                tok = token::Token::Comma(self.ch);
+            },
+            '.' => {
+                tok = token::Token::Dot(self.ch);
+            },
+            ';' => {
+                tok = token::Token::Semicolon(self.ch);
             },
             '0' => {
                 tok = token::Token::Eof;
