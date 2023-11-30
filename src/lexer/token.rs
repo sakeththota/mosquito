@@ -1,9 +1,32 @@
 #[derive(PartialEq)]
 #[derive(Debug)]
 pub enum Token {
+    // Keywords
+    IF,
+    ELSE,
+    WHILE,
+    FOR,
+    STRUCT,
+    BREAK,
+    CONTINUE,
+    RETURN,
+    NEW,
+
+
+    // Identifiers
+    Ident(Vec<char>),
+
+    // Literal
+    Int(Vec<char>),
+    Float(Vec<char>),
+    String(Vec<char>),
+    Boolean(Vec<char>),
+    Null(Vec<char>),
+
+
     // Operators
-    Add(char),
-    Subtract(char),
+    Plus(char),
+    Minus(char),
     Multiply(char),
     Divide(char),
     Modulo(char),
@@ -12,18 +35,18 @@ pub enum Token {
     Not(char),
     LessThan(char),
     GreaterThan(char),
-    // LessThanOrEqual(char),
-    // GreaterThanOrEqual(char),
+    LessThanOrEqual,
+    GreaterThanOrEqual,
     Equal(char),
-    // NotEqual(char),
+    NotEqual,
     Assignment(char),
-    // Increment(char),
-    // Decrement(char),
+    Increment,
+    Decrement,
     Hash(char),
-    // LeftShift(char),
-    // RightShift(char),
+    LeftShift,
+    RightShift,
 
-    // Delimeters
+    // Delimeter
     LParen(char),
     RParen(char),
     LBracket(char),

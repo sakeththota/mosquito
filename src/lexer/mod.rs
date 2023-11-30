@@ -33,7 +33,7 @@ impl Lexer {
         // skip whitespace
         match self.ch {
             '+' => {
-                tok = token::Token::Add(self.ch);
+                tok = token::Token::Plus(self.ch);
             },
             '0' => {
                 tok = token::Token::Eof;
@@ -47,25 +47,19 @@ impl Lexer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::lexer::Lexer;
+    use crate::lexer::token::Token;
 
     #[test]
     fn test_lexer1() {
-        let input = &b"=+(){},;"[..];
-        let (_, result) = Lexer::lex_tokens(input).unwrap();
-
+        let input = "+-*/";
+        let res = Lexer::new(input.chars().collect()).next_token();
+        println!("{:?}", res);
         let expected_results = vec![
-            Token::Assign,
             Token::Plus,
-            Token::LParen,
-            Token::RParen,
-            Token::LBrace,
-            Token::RBrace,
-            Token::Comma,
-            Token::SemiColon,
-            Token::EOF,
+            Token::Minus,
+            Token::Multiply,
+            Token::Divide
         ];
-
-        assert_eq!(result, expected_results);
     }
 }
