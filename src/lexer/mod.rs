@@ -1,26 +1,29 @@
 
 pub mod token;
-
+use token::Token;
+use anyhow::Result;
 pub struct Lexer {
-    input: Vec<char>,
+    input: Vec<u8>,
     pub position: usize,
     pub read_position: usize,
-    pub ch: char
+    pub ch: u8
 }
 
 impl Lexer {
-    pub fn new(input: Vec<char>) -> Self {
-        Self {
-            input: input,
+    pub fn new(input: String) -> Self {
+        let mut lex = Lexer {
+            input: input.into_bytes(),
             position: 0,
             read_position: 0,
-            ch: '0' 
-        }
+            ch: b'0'
+        };
+        lex.read_char();
+        return lex;
     }
 
     pub fn read_char(&mut self) {
         if self.read_position >= self.input.len() {
-            self.ch = '0';
+            self.ch = 0;
         } else {
             self.ch = self.input[self.read_position];
         }
@@ -28,150 +31,152 @@ impl Lexer {
         self.read_position += 1;
     }
 
-    // unsure about form feed and vertical tab
-    pub fn read_whitespace(&mut self) {
-        if self.ch == ' ' || self.ch == '\t' || self.ch == '\n' || self.ch == '/r' {
-            self.read_char();
+    fn peek(&self) -> u8 {
+        if self.read_position >= self.input.len() {
+            return 0;
+        } else {
+            return self.input[self.read_position];
         }
     }
 
-    pub fn read_number(&mut self) -> Vec<char> {
-        let mut literal: Vec<char> = Vec::new();
-        while is_digit(self.ch) || self.ch == '.' {
-            literal.push(self.ch);
+    pub fn read_number(&mut self) -> String {
+        let pos = self.position;
+        while self.ch.is_ascii_digit() || self.ch == b'.' {
             self.read_char();
         }
-        if self.read_position == 'l' || self.read_position == 'L' {
-            literal.push(self.ch);
+        if self.peek() == b'l' || self.peek() == b'L' {
             self.read_char();
         }
-        literal
+        return String::from_utf8_lossy(&self.input[pos..self.position]).to_string();
     }
     
-    pub fn read_identifier(&mut self) -> Vec<char> {
-        let mut identifier: Vec<char> = Vec::new();
-        while is_letter(self.ch) {
-            identifier.push(self.ch);
+    pub fn read_identifier(&mut self) -> String {
+        let pos = self.position;
+        while self.ch.is_ascii_alphabetic() || self.ch == b'_' {
             self.read_char();
         }
-        identifier
+        return String::from_utf8_lossy(&self.input[pos..self.position]).to_string();
     }
 
-    pub fn next_token(&mut self) -> token::Token {
-        let tok: token::Token;
-        // skip whitespace
-        match self.ch {
-            // operators
-            '+' => {
-                tok = token::Token::Plus(self.ch);
-            },
-            '-' => {
-                tok = token::Token::Minus(self.ch);
-            },
-            '*' => {
-                tok = token::Token::Multiply(self.ch);
-            },
-            '/' => {
-                tok = token::Token::Divide(self.ch);
-            },
-            '%' => {
-                tok = token::Token::Modulo(self.ch);
-            },
-            '!' => {
-                tok = token::Token::Not(self.ch);
-            },
-            '<' => {
-                tok = token::Token::LessThan(self.ch);
-            },
-            '>' => {
-                tok = token::Token::GreaterThan(self.ch);
-            },
-            '=' => {
-                tok = token::Token::Assignment(self.ch);
-            },
-            '#' => {
-                tok = token::Token::Hash(self.ch);
-            },
-            // delimeters
-            '(' => {)
-                tok = token::Token::LParen(self.ch);
-            },
-            ')' => {
-                tok = token::Token::RParen(self.ch);
-            },
-            '[' => {
-                tok = token::Token::LBracket(self.ch);
-            },
-            ']' => {
-                tok = token::Token::RBracket(self.ch);
-            },
-            '{' => {}
-                tok = token::Token::LBrace(self.ch);
-            },
-            '}' => {
-                tok = token::Token::RBrace(self.ch);
-            },
-            ',' => {
-                tok = token::Token::Comma(self.ch);
-            },
-            '.' => {
-                tok = token::Token::Dot(self.ch);
-            },
-            ';' => {
-                tok = token::Token::Semicolon(self.ch);
-            },
-            '0' => {
-                tok = token::Token::Eof;
-            },
-            "\"" => {
-                // tok = token::Token::StringLiteral(self.read_string());
-                todo!()
-            }
-            _ => {
-                if is_letter(self.ch) {
-                    let identifier: Vec<char> = read_identifier(self);
-                    if identifier == 'null' { return token::Token::NullLiteral; }
-                    if identifier == 'true' || 'false' { return token::Token::BoolLiteral(identifier == 'true')}
-                    match token::is_keyword(&identifier) {
-                        Ok(keyword_token) => {
-                            return keyword_token;
-                        },
-                        Err(_err) => {
-                            return token::Token::Identifier(identifier);
-                        }
-                    }
-                } else if is_digit(self.ch) {
-                    let literal: Vec<char> = read_number(self);
-                    if literal.contains('.') {
-                        return token::Token::FloatLiteral(literal);
-                    } else {
-                        return token::Token::IntLiteral(literal);
-                    }
-                } else {
-                    return token::Token::Illegal;
-                }
-            } 
+    fn skip_whitespace(&mut self) {
+        while self.ch.is_ascii_whitespace() {
+            self.read_char();
         }
+    }
+
+    pub fn next_token(&mut self) -> Result<Token> {
+        self.skip_whitespace();
+        let tok: Token = match self.ch {
+            b'+' => Token::Plus,
+            b'-' => Token::Minus,
+            b'*' => Token::Multiply,
+            b'/' => Token::Divide,
+            b'%' => Token::Modulo,
+            b'!' => Token::Not,
+            b'<' => Token::LessThan,
+            b'>' => Token::GreaterThan,
+            b'=' => Token::Assignment,
+            b'#' => Token::Hash,
+            b'(' => Token::LParen,
+            b')' => Token::RParen,
+            b'[' => Token::LBracket,
+            b']' => Token::RBracket,
+            b'{' => Token::LBrace,
+            b'}' => Token::RBrace,
+            b',' => Token::Comma,
+            b'.' => Token::Dot,
+            b';' => Token::Semicolon,
+            b'"' => todo!(),
+            0 => Token::Eof,
+            b'0'..=b'9' => {
+                let num: String = self.read_number();
+                if num.contains('.') {
+                    return Ok(Token::FloatLiteral(num));
+                } else { 
+                    return Ok(Token::IntLiteral(num));
+                }
+            },
+            b'a'..=b'z' | b'A'..=b'Z' | b'_' => {
+                let identifier = self.read_identifier();
+                return Ok(match identifier.as_str() {
+                    "if" => Token::If,
+                    "else" => Token::Else,
+                    "while" => Token::While,
+                    "for" => Token::For,
+                    "struct" => Token::Struct,
+                    "break" => Token::Break,
+                    "continue" => Token::Continue,
+                    "return" => Token::Return,
+                    "new" => Token::New,
+                    "true" => Token::True,
+                    "false" => Token::False,
+                    _ => Token::Identifier(identifier),
+                });
+            },
+            _ => Token::Illegal
+        };
+        println!("{:?}", tok);
         self.read_char();
-        tok
+        return Ok(tok);
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::lexer::Lexer;
-    use crate::lexer::token::Token;
+    use super::*;
 
     #[test]
-    fn test_lexer1() {
-        let input = "+-*/";
-        let res = Lexer::new(input.chars().collect()).next_token();
-        println!("{:?}", res);
-        let expected_results = vec![
+    fn test_basic_operators() -> Result<()> {
+        let input: &str = "+-*/%!<>=#";
+        let mut lexer: Lexer = Lexer::new(input.into());
+        let tokens: [Token; 10] = [
             Token::Plus,
             Token::Minus,
             Token::Multiply,
-            Token::Divide
+            Token::Divide,
+            Token::Modulo,
+            Token::Not,
+            Token::LessThan,
+            Token::GreaterThan,
+            Token::Assignment,
+            Token::Hash
         ];
+
+        for token in tokens {
+            let next_token = lexer.next_token()?;
+            println!("expected: {:?}, received {:?}", token, next_token);
+            assert_eq!(token, next_token);
+        }
+
+        return Ok(());
+    }
+
+    #[test]
+    fn test_ints_longs_arithmetic() -> Result<()> {
+        let input = "5 + 10 - 15 * 20 / 25 % 30";
+        let mut lexer = Lexer::new(input.into());
+
+        let tokens = [
+            Token::IntLiteral(String::from("5")),
+            Token::Plus,
+            Token::IntLiteral(String::from("10")),
+            Token::Minus,
+            Token::IntLiteral(String::from("15")),
+            Token::Multiply,
+            Token::IntLiteral(String::from("20")),
+            Token::Divide,
+            Token::IntLiteral(String::from("25")),
+            Token::Modulo,
+            Token::IntLiteral(String::from("30")),
+            Token::Eof
+        ];
+        
+        for token in tokens {
+            let next_token = lexer.next_token()?;
+            println!("expected: {:?}, received {:?}", token, next_token);
+            assert_eq!(token, next_token);
+        }
+
+        return Ok(());
     }
 }
