@@ -28,6 +28,13 @@ impl Lexer {
         self.read_position += 1;
     }
 
+    // unsure about form feed and vertical tab
+    pub fn read_whitespace(&mut self) {
+        if self.ch == ' ' || self.ch == '\t' || self.ch == '\n' || self.ch == '/r' {
+            self.read_char();
+        }
+    }
+
     pub fn next_token(&mut self) -> token::Token {
         let tok: token::Token;
         // skip whitespace
@@ -94,7 +101,30 @@ impl Lexer {
             '0' => {
                 tok = token::Token::Eof;
             },
-            _ => todo!()
+            "\"" => {
+                // tok = token::Token::StringLiteral(self.read_string());
+                todo!()
+            }
+            _ => {
+                if is_letter(self.ch) {
+                    let identifier: Vec<char> = read_identifier(self);
+                    if identifier == 'null' { return token::Token::NullLiteral; }
+                    if identifier == 'true' || 'false' { return token::Token::BoolLiteral(identifier == 'true')}
+                    match token::is_keyword(&identifier) {
+                        Ok(keyword_token) => {
+                            return keyword_token;
+                        },
+                        Err(_err) => {
+                            return token::Token::Identifier(identifier);
+                        }
+                    }
+                } else if is_digit(self.ch) {
+                    let literal: Vec<char> = read_number(self);
+                    return token::Token::IntLiteral(literal);
+                } else {
+                    return token::Token::Illegal;
+                }
+            } 
         }
         self.read_char();
         tok

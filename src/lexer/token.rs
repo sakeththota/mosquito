@@ -14,11 +14,11 @@ pub enum Token {
     // Identifiers
     Ident(Vec<char>),
     // Literal
-    Int(Vec<char>),
-    Float(Vec<char>),
-    String(Vec<char>),
-    Boolean(Vec<char>),
-    Null(Vec<char>),
+    IntLiteral(Vec<char>),
+    FloatLiteral(Vec<char>),
+    StringLiteral(Vec<char>),
+    BooleanLiteral(bool),
+    NullLiteral,
     // Operators
     Plus(char),
     Minus(char),
