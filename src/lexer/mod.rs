@@ -35,6 +35,28 @@ impl Lexer {
         }
     }
 
+    pub fn read_number(&mut self) -> Vec<char> {
+        let mut literal: Vec<char> = Vec::new();
+        while is_digit(self.ch) || self.ch == '.' {
+            literal.push(self.ch);
+            self.read_char();
+        }
+        if self.read_position == 'l' || self.read_position == 'L' {
+            literal.push(self.ch);
+            self.read_char();
+        }
+        literal
+    }
+    
+    pub fn read_identifier(&mut self) -> Vec<char> {
+        let mut identifier: Vec<char> = Vec::new();
+        while is_letter(self.ch) {
+            identifier.push(self.ch);
+            self.read_char();
+        }
+        identifier
+    }
+
     pub fn next_token(&mut self) -> token::Token {
         let tok: token::Token;
         // skip whitespace
@@ -120,7 +142,11 @@ impl Lexer {
                     }
                 } else if is_digit(self.ch) {
                     let literal: Vec<char> = read_number(self);
-                    return token::Token::IntLiteral(literal);
+                    if literal.contains('.') {
+                        return token::Token::FloatLiteral(literal);
+                    } else {
+                        return token::Token::IntLiteral(literal);
+                    }
                 } else {
                     return token::Token::Illegal;
                 }
