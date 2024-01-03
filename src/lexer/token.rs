@@ -1,7 +1,5 @@
-#[derive(PartialEq)]
-#[derive(Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Token {
-    // Keywords
     If,
     Else,
     While,
@@ -13,14 +11,11 @@ pub enum Token {
     New,
     True,
     False,
-    // Identifiers
     Identifier(String),
-    // Literal
     IntLiteral(String),
     FloatLiteral(String),
     StringLiteral(String),
     NullLiteral,
-    // Operators
     Plus,
     Minus,
     Multiply,
@@ -41,7 +36,6 @@ pub enum Token {
     Hash,
     LeftShift,
     RightShift,
-    // Delimeter
     LParen,
     RParen,
     LBracket,
@@ -51,7 +45,7 @@ pub enum Token {
     Comma,
     Dot,
     Semicolon,
-    // Special Tokens
     Illegal,
     Eof,
 }
+
