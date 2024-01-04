@@ -10,7 +10,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(input: String) -> Self {
+    fn new(input: String) -> Self {
         let mut lex = Lexer {
             input: input.into_bytes(),
             position: 0,
@@ -21,7 +21,7 @@ impl Lexer {
         return lex;
     }
 
-    pub fn read_char(&mut self) {
+    fn read_char(&mut self) {
         if self.read_position >= self.input.len() {
             self.ch = 0;
         } else {
@@ -39,7 +39,7 @@ impl Lexer {
         }
     }
 
-    pub fn read_number(&mut self) -> String {
+    fn read_number(&mut self) -> String {
         let pos = self.position;
         while self.ch.is_ascii_digit() || self.ch == b'.' {
             self.read_char();
@@ -50,12 +50,22 @@ impl Lexer {
         return String::from_utf8_lossy(&self.input[pos..self.position]).to_string();
     }
 
-    pub fn read_identifier(&mut self) -> String {
+    fn read_identifier(&mut self) -> String {
         let pos = self.position;
         while self.ch.is_ascii_alphabetic() || self.ch == b'_' {
             self.read_char();
         }
         return String::from_utf8_lossy(&self.input[pos..self.position]).to_string();
+    }
+
+    fn read_string(&mut self) -> String {
+        let pos = self.position + 1;
+        self.read_char();
+        while self.ch != b'"' {
+            self.read_char();
+        }
+        self.read_char();
+        return String::from_utf8_lossy(&self.input[pos..self.position - 1]).to_string();
     }
 
     fn skip_whitespace(&mut self) {
@@ -86,7 +96,10 @@ impl Lexer {
             b',' => Token::Comma,
             b'.' => Token::Dot,
             b';' => Token::Semicolon,
-            b'"' => todo!(),
+            b'"' => {
+                let string: String = self.read_string();
+                return Ok(Token::StringLiteral(string));
+            }
             0 => Token::Eof,
             b'0'..=b'9' => {
                 let num: String = self.read_number();
@@ -115,7 +128,6 @@ impl Lexer {
             }
             _ => Token::Illegal,
         };
-        println!("{:?}", tok);
         self.read_char();
         return Ok(tok);
     }
@@ -203,6 +215,50 @@ mod tests {
             Token::False,
             Token::Semicolon,
             Token::RBrace,
+            Token::Eof,
+        ];
+
+        for token in tokens {
+            let next_token = lexer.next_token()?;
+            println!("expected: {:?}, received {:?}", token, next_token);
+            assert_eq!(token, next_token);
+        }
+
+        return Ok(());
+    }
+
+    #[test]
+    fn test_string() -> Result<()> {
+        let input = "test = \"Saketh\"";
+        let mut lexer = Lexer::new(input.into());
+
+        let tokens = [
+            Token::Identifier(String::from("test")),
+            Token::Assignment,
+            Token::StringLiteral(String::from("Saketh")),
+            Token::Eof,
+        ];
+
+        for token in tokens {
+            let next_token = lexer.next_token()?;
+            println!("expected: {:?}, received {:?}", token, next_token);
+            assert_eq!(token, next_token);
+        }
+
+        return Ok(());
+    }
+
+    #[test]
+    fn test_string_escape_sequences() -> Result<()> {
+        let input = "test = \"dq \" bs \\ ab \\a bsp \\b nl \n tab \t ff \\f cr \r\"";
+        let mut lexer = Lexer::new(input.into());
+
+        let tokens = [
+            Token::Identifier(String::from("test")),
+            Token::Assignment,
+            Token::StringLiteral(String::from(
+                "dq \" bs \\ ab \\a bsp \\b nl \n tab \t ff \\f cr \r",
+            )),
             Token::Eof,
         ];
 
