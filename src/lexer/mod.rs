@@ -18,7 +18,7 @@ impl Lexer {
             ch: b'0',
         };
         lex.read_char();
-        return lex;
+        lex
     }
 
     fn read_char(&mut self) {
@@ -33,9 +33,9 @@ impl Lexer {
 
     fn peek(&self) -> u8 {
         if self.read_position >= self.input.len() {
-            return 0;
+            0
         } else {
-            return self.input[self.read_position];
+            self.input[self.read_position]
         }
     }
 
@@ -129,7 +129,7 @@ impl Lexer {
             _ => Token::Illegal,
         };
         self.read_char();
-        return Ok(tok);
+        Ok(tok)
     }
 }
 
